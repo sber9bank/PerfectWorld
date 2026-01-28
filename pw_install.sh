@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Colors
+# Цвета
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 BLUE='\033[1;34m'
@@ -10,7 +10,7 @@ BOLD='\033[1m'
 RESET='\033[0m'
 BOX='\033[1;44m'
 
-# Spinner
+# Спиннер (анимация ожидания)
 spinner() {
     local pid=$!
     local delay=0.1
@@ -26,12 +26,12 @@ spinner() {
     return $?
 }
 
-# Box with title
+# Коробка с заголовком
 print_box() {
     echo -e "\n${BOX} $1 ${RESET}\n"
 }
 
-# Messages
+# Сообщения
 print_info() {
     echo -e "${BLUE}➤ $1${RESET}"
 }
@@ -44,6 +44,7 @@ print_error() {
     echo -e "${RED}[✖] $1${RESET}"
 }
 
+# Прогресс-бар
 progress_bar() {
     local i=0
     local total=20
@@ -58,6 +59,7 @@ progress_bar() {
     echo ""
 }
 
+# Запуск команды с анимацией и сообщением результата
 run_cmd() {
     eval "$1" &> /dev/null &
     spinner
@@ -68,71 +70,71 @@ run_cmd() {
     fi
 }
 
-# Check root
+# Проверка запуска от root
 if [ "$(id -u)" -ne 0 ]; then
-    print_error "This script must be run as root"
+    print_error "Этот скрипт должен быть запущен от root"
     exit 1
 fi
 
-print_box "🛠 STARTING INSTALLATION"
+print_box "🛠 НАЧАЛО УСТАНОВКИ"
 
 progress_bar
 
-# Step 1: Architecture and update
-print_box "🏗 Adding i386 architecture and updating the system"
-run_cmd "dpkg --add-architecture i386" "i386 architecture added"
-run_cmd "apt update && apt -y upgrade" "System updated"
+# Шаг 1: Архитектура и обновление
+print_box "🏗 Добавление архитектуры i386 и обновление системы"
+run_cmd "dpkg --add-architecture i386" "Архитектура i386 добавлена"
+run_cmd "apt update && apt -y upgrade" "Система обновлена"
 
-# Step 2: Main packages
-print_box "📦 Installing main packages"
-run_cmd "apt -y install mc screen htop openjdk-11-jre mono-complete exim4 p7zip* libpcap-dev curl wget ipset net-tools tzdata ntpdate mariadb-server mariadb-client" "Main packages installed"
+# Шаг 2: Основные пакеты
+print_box "📦 Установка основных пакетов"
+run_cmd "apt -y install mc screen htop openjdk-11-jre mono-complete exim4 p7zip* libpcap-dev curl wget ipset net-tools tzdata ntpdate mariadb-server mariadb-client" "Основные пакеты установлены"
 
-# Step 3: Dev dependencies
-print_box "🔧 Installing development dependencies"
-run_cmd "apt -y install make gcc g++ libssl-dev:i386 libssl-dev libcrypto++-dev libpcre3 libpcre3-dev libpcre3:i386 libpcre3-dev:i386 libtesseract-dev libx11-dev:i386 libx11-dev gcc-multilib libc6-dev:i386 build-essential g++-multilib libtemplate-plugin-xml-perl libxml2-dev libxml2-dev:i386 libxml2:i386 libstdc++6:i386 libmariadb-dev-compat:i386 libmariadb-dev:i386" "Development dependencies installed"
+# Шаг 3: Зависимости для разработки
+print_box "🔧 Установка зависимостей для разработки"
+run_cmd "apt -y install make gcc g++ libssl-dev:i386 libssl-dev libcrypto++-dev libpcre3 libpcre3-dev libpcre3:i386 libpcre3-dev:i386 libtesseract-dev libx11-dev:i386 libx11-dev gcc-multilib libc6-dev:i386 build-essential g++-multilib libtemplate-plugin-xml-perl libxml2-dev libxml2-dev:i386 libxml2:i386 libstdc++6:i386 libmariadb-dev-compat:i386 libmariadb-dev:i386" "Зависимости для разработки установлены"
 
-# Step 4: DB libraries
-print_box "📚 Installing DB libraries"
-run_cmd "apt -y install libdb++-dev:i386 libdb-dev:i386 libdb5.3:i386 libdb5.3++:i386 libdb5.3++-dev:i386 libdb5.3-dbg:i386 libdb5.3-dev:i386" "DB libraries (i386) installed"
-run_cmd "apt -y install libdb++-dev libdb-dev libdb5.3 libdb5.3++ libdb5.3++-dev libdb5.3-dbg libdb5.3-dev" "DB libraries (64bit) installed"
+# Шаг 4: Библиотеки для БД
+print_box "📚 Установка библиотек БД"
+run_cmd "apt -y install libdb++-dev:i386 libdb-dev:i386 libdb5.3:i386 libdb5.3++:i386 libdb5.3++-dev:i386 libdb5.3-dbg:i386 libdb5.3-dev:i386" "Библиотеки БД (i386) установлены"
+run_cmd "apt -y install libdb++-dev libdb-dev libdb5.3 libdb5.3++ libdb5.3++-dev libdb5.3-dbg libdb5.3-dev" "Библиотеки БД (64-bit) установлены"
 
-# Step 5: Other dependencies
-print_box "➕ Additional dependencies"
-run_cmd "apt -y install libmysqlcppconn-dev libjsoncpp-dev libmariadb-dev-compat curl libcurl4:i386 libcurl4-gnutls-dev" "Additional dependencies installed"
+# Шаг 5: Прочие зависимости
+print_box "➕ Дополнительные зависимости"
+run_cmd "apt -y install libmysqlcppconn-dev libjsoncpp-dev libmariadb-dev-compat curl libcurl4:i386 libcurl4-gnutls-dev" "Дополнительные зависимости установлены"
 
-# Step 6: Apache and PHP
-print_box "🌐 Installing Apache and PHP"
-run_cmd "apt -y install apache2 php libapache2-mod-php php-mysql php-curl php-gd php-mbstring php-xml php-xmlrpc php-soap php-intl php-zip" "Apache and PHP installed"
-run_cmd "systemctl restart apache2" "Apache restarted"
+# Шаг 6: Apache и PHP
+print_box "🌐 Установка Apache и PHP"
+run_cmd "apt -y install apache2 php libapache2-mod-php php-mysql php-curl php-gd php-mbstring php-xml php-xmlrpc php-soap php-intl php-zip" "Apache и PHP установлены"
+run_cmd "systemctl restart apache2" "Apache перезапущен"
 
-# Step 7: Adminer
-print_box "📁 Installing Adminer"
-run_cmd "wget -O /var/www/html/adminer.php https://github.com/vrana/adminer/releases/download/v4.8.1/adminer-4.8.1.php" "Adminer downloaded"
-run_cmd "chown www-data:www-data /var/www/html/adminer.php" "Permissions set"
-run_cmd "chmod 755 /var/www/html/adminer.php" "Permissions applied"
+# Шаг 7: Adminer
+print_box "📁 Установка Adminer"
+run_cmd "wget -O /var/www/html/adminer.php https://github.com/vrana/adminer/releases/download/v4.8.1/adminer-4.8.1.php" "Adminer скачан"
+run_cmd "chown www-data:www-data /var/www/html/adminer.php" "Права владельца установлены"
+run_cmd "chmod 755 /var/www/html/adminer.php" "Права доступа применены"
 
-# Step 8: MySQL configuration
-print_box "🛡 Checking MySQL configuration"
+# Шаг 8: Настройка MySQL/MariaDB
+print_box "🛡 Проверка конфигурации MySQL/MariaDB"
 
-# Test if root has a password
+# Проверка: есть ли пароль у root
 mysqladmin -u root status &> /dev/null
 if [ $? -eq 0 ]; then
-    print_info "MySQL root still has no password. Requesting password for configuration."
-    read -p "Enter the password for the MySQL root user (empty = root): " MYSQL_ROOT_PASSWORD
+    print_info "У MySQL/MariaDB root всё ещё нет пароля. Запрашиваем пароль для настройки."
+    read -p "Введите пароль для пользователя MySQL root (пусто = root): " MYSQL_ROOT_PASSWORD
     MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
-    run_cmd "mysql -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';\"" "Root password set"
+    run_cmd "mysql -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';\"" "Пароль root установлен"
 else
-    print_info "MySQL root already has a password configured. Skipping password setup."
-    read -s -p "Enter the current root password to continue (only for Adminer configuration): " MYSQL_ROOT_PASSWORD
+    print_info "У MySQL/MariaDB root уже настроен пароль. Пропускаем установку пароля."
+    read -s -p "Введите текущий пароль root для продолжения (нужно только для настройки Adminer): " MYSQL_ROOT_PASSWORD
     echo ""
 fi
 
-run_cmd "mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"DELETE FROM mysql.user WHERE User='';\"" "Anonymous users removed"
-run_cmd "mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"DROP DATABASE IF EXISTS test;\"" "Test database removed"
-run_cmd "mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"FLUSH PRIVILEGES;\"" "Privileges flushed"
+run_cmd "mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"DELETE FROM mysql.user WHERE User='';\"" "Анонимные пользователи удалены"
+run_cmd "mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"DROP DATABASE IF EXISTS test;\"" "Тестовая база удалена"
+run_cmd "mysql -u root -p${MYSQL_ROOT_PASSWORD} -e \"FLUSH PRIVILEGES;\"" "Права обновлены (FLUSH PRIVILEGES)"
 
-# Step 9: Adminer Config
-print_box "📝 Creating Adminer config"
+# Шаг 9: Конфиг Adminer
+print_box "📝 Создание конфигурации Adminer"
 cat > /var/www/html/adminer-config.php <<EOF
 <?php
 function adminer_object() {
@@ -149,10 +151,10 @@ function adminer_object() {
 EOF
 chown -R www-data:www-data /var/www/html
 chmod -R 755 /var/www/html
-run_cmd "a2enmod rewrite && systemctl restart apache2" "Apache configured with rewrite"
+run_cmd "a2enmod rewrite && systemctl restart apache2" "Apache настроен (rewrite включён)"
 
-# Final
-print_box "✅ FINISHED"
-echo -e "${CYAN}Access: http://your-ip/adminer.php"
-echo -e "User: root"
-echo -e "Password: ${MYSQL_ROOT_PASSWORD}${RESET}"
+# Финал
+print_box "✅ ГОТОВО"
+echo -e "${CYAN}Доступ: http://your-ip/adminer.php"
+echo -e "Пользователь: root"
+echo -e "Пароль: ${MYSQL_ROOT_PASSWORD}${RESET}"
